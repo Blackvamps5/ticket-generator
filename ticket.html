@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mobile Ticket Generator</title>
+<style>
+body {
+font-family: Arial, sans-serif;
+background: #eee;
+display: flex;
+flex-direction: column;
+align-items: center;
+margin: 20px;
+}
+
+/* Mobile Phone Frame */
+.phone {
+width: 390px;
+border: 16px solid #000;
+border-radius: 30px;
+background: #fff;
+box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+overflow: hidden;
+}
+
+/* Status Bar */
+.status-bar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 6px 12px;
+font-size: 14px;
+background: #fff;
+}
+
+.status-left { font-weight: bold; }
+.status-right { display: flex; gap: 8px; align-items: center; }
+
+.battery {
+width: 24px; height: 12px;
+border: 1.5px solid black;
+border-radius: 3px;
+position: relative;
+}
+.battery::after {
+content: "";
+position: absolute;
+right: -4px;
+top: 3px;
+width: 2px;
+height: 6px;
+background: black;
+}
+.battery-level { height: 100%; background: green; width: 70%; }
+
+/* Header */
+.ticket-header {
+background: #a00000;
+color: white;
+padding: 12px;
+text-align: center;
+font-weight: bold;
+position: relative;
+}
+
+.close-btn {
+position: absolute;
+left: 12px; top: 12px;
+font-size: 20px;
+cursor: pointer;
+}
+
+/* Ticket Layout */
+.ticket { width: 100%; background: white; }
+.ticket-info {
+display: flex; justify-content: space-around;
+background: #c00000; color: white; padding: 8px;
+}
+.ticket-info div { text-align: center; }
+
+.ticket-body { text-align: center; padding: 10px; }
+.ticket-body img {
+width: 100%; height: 180px;
+object-fit: cover;
+}
+
+.ticket-footer { padding: 12px; text-align: center; font-size: 14px; color: #333; }
+
+/* Bottom Buttons */
+.bottom-buttons {
+display: flex; justify-content: space-around;
+padding: 12px; background: #fff; border-top: 1px solid #ddd;
+}
+.bottom-buttons button {
+flex: 1; margin: 0 5px; padding: 10px;
+background: #a00000; color: white; font-weight: bold;
+border: none; border-radius: 6px; cursor: pointer;
+}
+.bottom-buttons button:hover { background: #800000; }
+
+/* Controls */
+.controls {
+margin-top: 20px; display: flex; flex-direction: column;
+gap: 10px; align-items: center; width: 350px;
+}
+.controls input, .controls button {
+padding: 8px; font-size: 14px; width: 100%;
+}
+.btn {
+background: #a00000; color: white;
+border: none; border-radius: 5px; cursor: pointer;
+}
+.btn:hover { background: #800000; }
+</style>
+</head>
+<body>
+
+<!-- Phone Container -->
+<div class="phone" id="ticket">
+
+<!-- Status Bar -->
+<div class="status-bar">
+<div class="status-left" id="time">6:37</div>
+<div class="status-right">
+📶 📡
+<div class="battery"><div class="battery-level"></div></div>
+</div>
+</div>
+
+<!-- Header -->
+<div class="ticket-header">
+<span class="close-btn">✕</span>
+My Tickets
+</div>
+
+<!-- Ticket -->
+<div class="ticket">
+<div class="ticket-info">
+<div><div>Section</div><div id="section">126</div></div>
+<div><div>Row</div><div id="row">30</div></div>
+<div><div>Seat</div><div id="seat">5</div></div>
+</div>
+<div class="ticket-body">
+<img id="ticketImage" src="https://i.ibb.co/jwLWwWc/football.jpg" alt="ticket image">
+<h3 id="match">49ers vs. New York Giants</h3>
+<p id="date">Thu, Sep 21, 5:15pm • Levi's Stadium</p>
+</div>
+<div class="ticket-footer">
+<p id="level">100 Lower Level</p>
+</div>
+</div>
+
+<!-- Bottom Buttons -->
+<div class="bottom-buttons">
+<button>Transfer</button>
+<button>Sell</button>
+</div>
+
+</div>
+
+<!-- Controls -->
+<div class="controls">
+<input type="text" id="inputSection" placeholder="Section">
+<input type="text" id="inputRow" placeholder="Row">
+<input type="text" id="inputSeat" placeholder="Seat">
+<input type="text" id="inputMatch" placeholder="Match">
+<input type="text" id="inputDate" placeholder="Date & Time">
+<input type="text" id="inputLevel" placeholder="Level Info">
+<input type="file" id="inputImage" accept="image/*">
+<button class="btn" onclick="downloadTicket()">Download Ticket</button>
+</div>
+
+<!-- HTML2Canvas for downloading -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// Live text updates
+const liveInputs = {
+inputSection: "section",
+inputRow: "row",
+inputSeat: "seat",
+inputMatch: "match",
+inputDate: "date",
+inputLevel: "level"
+};
+
+Object.keys(liveInputs).forEach(inputId => {
+document.getElementById(inputId).addEventListener("input", function() {
+document.getElementById(liveInputs[inputId]).innerText = this.value;
+});
+});
+
+// Upload image from device
+document.getElementById("inputImage").addEventListener("change", function(event) {
+const file = event.target.files[0];
+if (file) {
+const reader = new FileReader();
+reader.onload = function(e) {
+document.getElementById("ticketImage").src = e.target.result;
+};
+reader.readAsDataURL(file);
+}
+});
+
+// Dynamic time update
+function updateTime() {
+const now = new Date();
+let hours = now.getHours();
+let minutes = now.getMinutes();
+if (minutes < 10) minutes = "0" + minutes;
+document.getElementById("time").innerText = `${hours}:${minutes}`;
+}
+setInterval(updateTime, 60000);
+updateTime();
+
+// Download Ticket
+function downloadTicket() {
+html2canvas(document.getElementById("ticket")).then(canvas => {
+let link = document.createElement("a");
+link.download = "ticket.png";
+link.href = canvas.toDataURL();
+link.click();
+});
+}
+</script>
+</body>
+</html>
